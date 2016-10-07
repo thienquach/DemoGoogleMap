@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.thienquach.demogooglemap">
+
+    <!-- Allows the API to determine as precise a location as possible from
+    the available location providers, including the Global Positioning System
+    (GPS) as well as WiFi and mobile cell data. -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+
+        <!-- API key to access Google API -->
+        <meta-data android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyD7RsfuZJIvWycqdVxF6R-fxvHGCB8gyrU"/>
+
+        <activity android:name=".SearchActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".MapActivity" />
+    </application>
+
+</manifest>
