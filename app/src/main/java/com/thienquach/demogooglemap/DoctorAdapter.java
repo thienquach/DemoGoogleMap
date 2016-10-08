@@ -57,7 +57,7 @@ public class DoctorAdapter extends BaseAdapter{
 
         doctorNameTV.setText(doctorList.get(position).getName());
         addressTV.setText(doctorList.get(position).getAddress());
-
+        distanceTV.setText(doctorList.get(position).getDistance());
         return convertView;
     }
 }

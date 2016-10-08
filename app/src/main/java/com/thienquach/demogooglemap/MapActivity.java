@@ -1,7 +1,11 @@
 package com.thienquach.demogooglemap;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
@@ -12,6 +16,10 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import org.json.JSONObject;
+
+import java.util.List;
 
 public class MapActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -40,10 +48,37 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             // Show rationale and request permission.
         }
 
-        // Add a marker in Sydney, Australia, and move the camera.
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        Intent intent = getIntent();
+        String strAddress = intent.getStringExtra("address");
+        String strName = intent.getStringExtra("name");
+
+
+
+        LatLng doctorAddress = getLocationFromAddress(this, strAddress);
+        mMap.addMarker(new MarkerOptions().position(doctorAddress).title(strName));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(doctorAddress, 15.0f));
+
+
+    }
+
+    private LatLng getLocationFromAddress(Context context, String strAddress){
+        Geocoder coder = new Geocoder(context);
+
+        List<Address> addresses;
+        LatLng latLng = null;
+
+        try{
+            addresses = coder.getFromLocationName(strAddress, 5);
+            if(addresses == null || addresses.size() < 0){
+                return null;
+            }
+            Address location = addresses.get(0);
+            latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return latLng;
 
     }
 }

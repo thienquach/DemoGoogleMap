@@ -7,6 +7,7 @@ public class Doctor {
 
     private String name;
     private String address;
+    private String distance;
 
     public Doctor(String name, String address) {
         this.name = name;
@@ -27,5 +28,13 @@ public class Doctor {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
     }
 }
