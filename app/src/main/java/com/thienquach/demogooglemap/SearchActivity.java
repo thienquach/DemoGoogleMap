@@ -17,10 +17,10 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.maps.DistanceMatrixApi;
 import com.google.maps.GeoApiContext;
-import com.google.maps.android.SphericalUtil;
 import com.google.maps.model.DistanceMatrix;
 import com.google.maps.model.LatLng;
 import com.thienquach.demogooglemap.model.Doctor;
@@ -53,8 +53,7 @@ public class SearchActivity extends Activity {
         searchText = (EditText) findViewById(R.id.searchText);
         doctorLV = (ListView) findViewById(R.id.doctorLV);
 
-        //get location service
-        mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+
 
         initDoctorList();
 
@@ -64,14 +63,34 @@ public class SearchActivity extends Activity {
                 if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
+
+                //get location service
+                mLocationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                //request current location from GPS
                 mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000, 1000, mLocationListener);
                 mLocation = mLocationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
+                //Assign LatLng from GPS to User location
                 mUserLatLng = new LatLng(mLocation.getLatitude(), mLocation.getLongitude());
-//                if(mLocation != null){
-//                    Toast.makeText(getApplicationContext(), "Latitude: " + mLocation.getLatitude() + ", Longitude: " + mLocation.getLongitude() + ", Altitude: " +mLocation.getAltitude(), Toast.LENGTH_LONG).show();
-//                }
-                loadDoctorListView();
+
+                //load the ListView
+                loadDoctorListView(mUserLatLng);
+            }
+        });
+
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                //User should input their address manually
+                if("".equals(searchText.getText().toString())){
+                    Toast.makeText(getApplicationContext(), "Please fille in your address.", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                //Get LatLng from address
+                mUserLatLng = getLatLngByAddress(getApplicationContext(), searchText.getText().toString());
+
+                //load the ListView
+                loadDoctorListView(mUserLatLng);
             }
         });
 
@@ -93,6 +112,7 @@ public class SearchActivity extends Activity {
 
     }
 
+    /*Initialize a list mockup data*/
     private void initDoctorList(){
         doctorList = new ArrayList<>();
 
@@ -102,19 +122,25 @@ public class SearchActivity extends Activity {
         doctorList.add(new Doctor("ABC", "364 Cong Hoa, Phuong 13, Tan Binh, HCM, VN"));
     }
 
-    private void loadDoctorListView(){
+    /*Load the ListView bases on Current location of user*/
+    private void loadDoctorListView(LatLng userLatLng){
         if(doctorList != null && doctorList.size() > 0){
             for(Doctor doctor : doctorList){
-                LatLng doctorLatLng = getLocationFromAddress(this, doctor.getAddress());
-//                double distance = calculateDistance2(mUserLatLng, doctorLatLng);
-//                doctor.setDistance(String.valueOf(distance));
-                String distance = calculateUsingDistanceMatrixApi(mUserLatLng, doctorLatLng);
+                LatLng doctorLatLng = getLatLngByAddress(this, doctor.getAddress());
+
+                //calculate the distance between user and doctor
+                String distance = calculateUsingDistanceMatrixApi(userLatLng, doctorLatLng);
+
+                //set distance for doctor
                 doctor.setDistance(distance);
             }
         }
         doctorLV.setAdapter(new DoctorAdapter(SearchActivity.this, doctorList));
     }
 
+    /**
+     * This method calculate the distance based on 2 Geo points
+     * */
     private double calculateDistance(LatLng userLatLng, LatLng doctorLatLng){
         Location userLocation = new Location("userLocation");
         userLocation.setLatitude(userLatLng.lat);
@@ -127,25 +153,33 @@ public class SearchActivity extends Activity {
         return Math.round(userLocation.distanceTo(doctorLocation));
     }
 
+    /***
+     * This method call an API DistanceMatrix to request the distance between 2 Geo points
+     *
+     */
     private String calculateUsingDistanceMatrixApi(LatLng userLatLng, LatLng doctorLatLng){
-        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyBhIVeqyj8kaQljqLDXOplX05x75XNkxWw");
+        //this API key is the same with the one was defined in AndroidManifest
+        GeoApiContext context = new GeoApiContext().setApiKey("AIzaSyD7RsfuZJIvWycqdVxF6R-fxvHGCB8gyrU");
 
         DistanceMatrix matrix = null;
         try {
+            //perform a GET request to get the distance
             matrix = DistanceMatrixApi.newRequest(context)
                     .origins(userLatLng)
                     .destinations(doctorLatLng).await();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(matrix != null && matrix.rows.length > 0) {
+        if(matrix != null && matrix.rows[0].elements[0].status.equals("OK")) {
             return matrix.rows[0].elements[0].distance.humanReadable;
         }
-        return null;
+        return "Cannot calculate the distance";
     }
 
-
-    private LatLng getLocationFromAddress(Context context, String strAddress){
+    /**
+     * This method retrieve LatLng by provided address
+     * */
+    private LatLng getLatLngByAddress(Context context, String strAddress){
         Geocoder coder = new Geocoder(context);
 
         List<Address> addresses;
@@ -165,6 +199,7 @@ public class SearchActivity extends Activity {
         return latLng;
 
     }
+
 
     private final LocationListener mLocationListener = new LocationListener(){
 

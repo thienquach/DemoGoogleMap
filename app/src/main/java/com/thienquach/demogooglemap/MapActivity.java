@@ -17,8 +17,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import org.json.JSONObject;
-
 import java.util.List;
 
 public class MapActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -53,15 +51,20 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         String strName = intent.getStringExtra("name");
 
 
+        //NOTE: the LatLng using here is com.google.android.gms.maps.model.LatLng
+        //which is different from com.google.maps.model.LatLng
+        LatLng doctorAddress = getLocationByAddress(this, strAddress);
 
-        LatLng doctorAddress = getLocationFromAddress(this, strAddress);
+        //add a marker into the map
         mMap.addMarker(new MarkerOptions().position(doctorAddress).title(strName));
+
+        //move the camera to the marker, and zoom in
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(doctorAddress, 15.0f));
 
 
     }
 
-    private LatLng getLocationFromAddress(Context context, String strAddress){
+    private LatLng getLocationByAddress(Context context, String strAddress){
         Geocoder coder = new Geocoder(context);
 
         List<Address> addresses;
