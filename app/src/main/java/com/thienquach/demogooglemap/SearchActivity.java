@@ -170,7 +170,7 @@ public class SearchActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if(matrix != null && matrix.rows[0].elements[0].status.equals("OK")) {
+        if(matrix != null && "OK".equalsIgnoreCase(matrix.rows[0].elements[0].status.toString())) {
             return matrix.rows[0].elements[0].distance.humanReadable;
         }
         return "Cannot calculate the distance";
